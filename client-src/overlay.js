@@ -26,7 +26,18 @@ let onLoadQueue = [];
 
 ansiHTML.setColors(colors);
 
+let overlayTrustedTypesPolicy;
+
 function createContainer() {
+  if (window.trustedTypes) {
+    overlayTrustedTypesPolicy = window.trustedTypes.createPolicy(
+      "webpack-dev-server#overlay",
+      {
+        createHTML: (value) => value,
+      }
+    );
+  }
+
   iframeContainerElement = document.createElement("iframe");
   iframeContainerElement.id = "webpack-dev-server-client-overlay";
   iframeContainerElement.src = "about:blank";
@@ -193,7 +204,9 @@ function show(type, messages) {
       const text = ansiHTML(encode(body));
       const messageTextNode = document.createElement("div");
 
-      messageTextNode.innerHTML = text;
+      messageTextNode.innerHTML = overlayTrustedTypesPolicy
+        ? overlayTrustedTypesPolicy.createHTML(text)
+        : text;
 
       entryElement.appendChild(typeElement);
       entryElement.appendChild(document.createElement("br"));
